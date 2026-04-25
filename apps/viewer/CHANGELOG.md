@@ -1,5 +1,91 @@
 # @ifc-lite/viewer
 
+## 1.18.0
+
+### Minor Changes
+
+- [#576](https://github.com/louistrue/ifc-lite/pull/576) [`1309f8c`](https://github.com/louistrue/ifc-lite/commit/1309f8cba128b3b6237ebfb9831bf359c426a742) Thanks [@louistrue](https://github.com/louistrue)! - Add the full IfcTask / 4D construction-schedule experience to the viewer.
+
+  **Gantt panel** — a lower-panel workspace combining a task tree, a zoomable
+  SVG timeline with task bars / milestones / dependency arrows / playback
+  cursor, a toolbar (work-schedule filter, play / pause / loop / speed, time
+  scale), and an empty state. Live Gantt ↔ 3D selection highlight (one-way,
+  no isolation) and playback-driven visibility through the rendererʼs
+  hidden-entity channel.
+
+  **Schedule editing** — Inspector Task card (name, identification,
+  predefined type, milestone, start / finish / duration with any-two-of-three
+  reconciliation, assigned products, delete with cascade). Undo / redo
+  (descriptor-based lightweight snapshots for field edits; full snapshot for
+  structural edits), store-scoped transactions (drag-coalesced), add / delete /
+  reorder tasks. IFC STEP export routes through a centralised schedule splice
+  helper so generated / edited schedules round-trip cleanly on every export
+  surface.
+
+  **Generate from hierarchy** — a Generate Schedule dialog produces a work
+  schedule + tasks from the modelʼs spatial hierarchy (Storey / Building) or
+  geometry (Height-slice, with optional Class / Type / Name subgroup). Linked
+  FS dependencies and ghost-preparation look-ahead are opt-in.
+
+  **4D animation** — Synchro-style phased lifecycle (preparation ghost →
+  ramp-in → active task-type colour → settling fade → complete), demolition
+  inversion, customizable palette, and configurable palette intensity /
+  look-ahead / hide-untasked products. Animation layers live in a priority-
+  composited overlay registry (`registerOverlayLayer`), with a single
+  compositor hook owning the write to the rendererʼs hidden-entity + colour-
+  override channels.
+
+  **LLM integration** — built-in "Construction schedule (4D)" script template,
+  PDF / spreadsheet chat attachments, and `bim.schedule.*` read APIs reachable
+  from the sandbox.
+
+- [#588](https://github.com/louistrue/ifc-lite/pull/588) [`b75f0cc`](https://github.com/louistrue/ifc-lite/commit/b75f0cccb06c89f5e30272d6c04f986f3b47e574) Thanks [@louistrue](https://github.com/louistrue)! - Replace the SQL tab in the advanced search modal with a clean
+  chip-based **Filter** tab. Storey / IFC type / Predefined type / Name /
+  Property / Quantity rules compose with AND/OR + IsSet/IsNotSet and
+  run through an in-memory evaluator that scales to 4M-entity models
+  via `entityIndex.byType` / `spatialHierarchy.byStorey` prefilter,
+  cheap-first per-entity rule ordering, and async chunked yielding
+  with cancel + progress. The DuckDB engine, SQL editor, schema
+  browser, templates, error rewriter, and saved-SQL-queries module
+  have been removed — Builder is the whole UI now, with a single Run
+  button and CSV/JSON export. Builder dropdowns are schema-aware
+  (storeys + IFC types load eagerly, pset / qto names load lazily on
+  first use), the inline search-bar query promotes to a Name rule
+  with one click, multi-model row clicks route to the correct model,
+  and saved presets persist named `{name, combinator, rules}`
+  snapshots in localStorage.
+
+### Patch Changes
+
+- [#588](https://github.com/louistrue/ifc-lite/pull/588) [`b75f0cc`](https://github.com/louistrue/ifc-lite/commit/b75f0cccb06c89f5e30272d6c04f986f3b47e574) Thanks [@louistrue](https://github.com/louistrue)! - Address PR #588 review feedback that survived the Filter migration:
+
+  - Inline-bar Enter now flushes the 80ms debounce by re-scanning against
+    the live `searchQuery`, so committing inside the debounce window
+    selects the entity matching what the input shows (not the prior
+    query) and records the correct recent.
+  - The 50ms `frameSelection` timer in the inline bar is tracked via a
+    ref and cleared on rapid selection changes / unmount instead of
+    leaking orphan callbacks.
+  - Shift+Enter additive selection in the inline bar and the row-level
+    additive path in the Search modal now TOGGLE via `toggleEntitySelection`,
+    so the same interaction can deselect a previously-added row.
+  - New `addEntitiesToSelection` batch action on the selection slice;
+    the Search modal's "Select all" path uses it so a 5K-row select-all
+    dispatches one Zustand `set` instead of N.
+  - Tier-0 scoring now keeps the max across name/type/objectType/description
+    fields (matching Tier-1's behaviour). Without this, an entity with a
+    substring name hit and a type-exact hit ranked lower than it should
+    on Tier-0, breaking the comparable-ordering guarantee when results
+    came from a mix of Tier-0 and Tier-1 models.
+
+- Updated dependencies [[`1309f8c`](https://github.com/louistrue/ifc-lite/commit/1309f8cba128b3b6237ebfb9831bf359c426a742), [`1309f8c`](https://github.com/louistrue/ifc-lite/commit/1309f8cba128b3b6237ebfb9831bf359c426a742), [`1309f8c`](https://github.com/louistrue/ifc-lite/commit/1309f8cba128b3b6237ebfb9831bf359c426a742), [`1309f8c`](https://github.com/louistrue/ifc-lite/commit/1309f8cba128b3b6237ebfb9831bf359c426a742), [`16d7a63`](https://github.com/louistrue/ifc-lite/commit/16d7a6361a78bb39a2bd61bba6990db5d3df0c04), [`18c6a37`](https://github.com/louistrue/ifc-lite/commit/18c6a37f1cc1426daa32ee60457dd0580a5257f5)]:
+  - @ifc-lite/parser@2.2.0
+  - @ifc-lite/renderer@1.16.1
+  - @ifc-lite/sdk@1.15.0
+  - @ifc-lite/sandbox@1.15.0
+  - @ifc-lite/query@1.14.7
+  - @ifc-lite/wasm@1.16.7
+
 ## 1.17.6
 
 ### Patch Changes
